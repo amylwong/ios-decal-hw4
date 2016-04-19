@@ -24,6 +24,8 @@ class PlayerViewController: UIViewController {
     var artistLabel: UILabel!
     var titleLabel: UILabel!
     
+    var initialPlay: Bool = true
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view = UIView(frame: UIScreen.mainScreen().bounds)
@@ -129,18 +131,42 @@ class PlayerViewController: UIViewController {
         let clientID = NSDictionary(contentsOfFile: path!)?.valueForKey("client_id") as! String
         let track = tracks[currentIndex]
         let url = NSURL(string: "https://api.soundcloud.com/tracks/\(track.id)/stream?client_id=\(clientID)")!
-        // FILL ME IN
-    
+
+        if self.initialPlay {
+            let song = AVPlayerItem(URL: url)
+            self.player = AVPlayer(playerItem: song)
+            self.initialPlay = false;
+        }
+        sender.selected = !sender.selected
+        if sender.selected {
+            player.play()
+        } else {
+            player.pause()
+        }
     }
     
-    /* 
+    /*
      * Called when the next button is tapped. It should check if there is a next
      * track, and if so it will load the next track's data and
      * automatically play the song if a song is already playing
      * Remember to update the currentIndex
      */
     func nextTrackTapped(sender: UIButton) {
-    
+        let isCurrentlyPlaying = playPauseButton.selected
+        if (currentIndex + 1) < tracks.count {
+            currentIndex = currentIndex + 1
+        } else {
+            currentIndex = 0
+        }
+        loadTrackElements()
+        self.initialPlay = true
+        self.playOrPauseTrack(sender)
+        if isCurrentlyPlaying {
+            player.play()
+        } else {
+            player.pause()
+        }
+        
     }
 
     /*
@@ -152,9 +178,26 @@ class PlayerViewController: UIViewController {
      *      a song is already playing
      *  Remember to update the currentIndex if necessary
      */
-
     func previousTrackTapped(sender: UIButton) {
-    
+        let isCurrentlyPlaying = playPauseButton.selected
+        let secondsPlayed = CMTimeGetSeconds(self.player.currentTime())
+        if (secondsPlayed > 3) {
+            self.player.seekToTime(kCMTimeZero)
+        } else {
+            if (currentIndex - 1) >= 0 {
+                currentIndex = currentIndex - 1
+            } else {
+                currentIndex = tracks.count - 1
+            }
+        }
+        loadTrackElements()
+        self.initialPlay = true
+        self.playOrPauseTrack(sender)
+        if isCurrentlyPlaying {
+            player.play()
+        } else {
+            player.pause()
+        }
     }
     
     
